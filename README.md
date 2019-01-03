@@ -4,6 +4,8 @@ Simple Python3 script for computing Nirvana values, used during the Naa'Maz Nirv
 ## Mathematical problem
 Given a dice roll `ndk` (where `n` is the number of dice and `k` the sides for each die, e.g. `3d6` for a roll of `3` dice with `6` sides) and a probability `p`, we want to know the value `D` such that the sum of dice values is greater than `D` `p`% of the times.
 
+The formulae used here were taken from https://www.lucamoroni.it/the-dice-roll-sum-problem/. Thank you Luca!
+
 ## Technical details
 
 ### Dependencies
