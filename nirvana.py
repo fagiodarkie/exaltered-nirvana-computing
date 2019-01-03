@@ -11,7 +11,7 @@ def help():
 def computeArguments(arg):
     [die, sides] = arg[1].split("d")
     prob = arg[2]
-    return (int(die), int(sides), int(prob))
+    return (int(die), int(sides), float(prob))
 
 def signedK(dieNumber, dieSides, s):
     return int(numpy.floor((s - dieNumber) / dieSides))
