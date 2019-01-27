@@ -1,55 +1,64 @@
 import sys
-import numpy
-from scipy.special import binom
+import operator
 
 def help():
     print("Usage: python nirvana.py NdK P")
     print("\tN: number of dice, e.g. 3")
     print("\tK: number of sides for each die, e.g. 6")
-    print("\tP: probability of success, e.g. 15")
 
 def computeArguments(arg):
     [die, sides] = arg[1].split("d")
-    prob = arg[2]
-    return (int(die), int(sides), float(prob))
+    return (int(die), int(sides))
 
-def signedK(dieNumber, dieSides, s):
-    return int(numpy.floor((s - dieNumber) / dieSides))
+def checkSuccess(rolledDice, possibleResults):
+    resultDice = {}
+    rollResult = 0
+    for die in rolledDice:
+        if die not in resultDice:
+            resultDice[die] = 1
+        else:
+            resultDice[die] += 1
 
-def specialSum(n, k, s):
-    accumulator = 0
-    signedk = signedK(n, k, s)
-    for j in range(signedk + 1):
-        partial = ((-1)**j) * binom(n, j) * binom(s - k*j - 1, s - k*j - n)
-        accumulator += partial
-    return accumulator
+    for dieVal in resultDice:
+        if resultDice[dieVal] > 1:
+            rollResult += dieVal
 
-def computeDifficulty(die, sides, prob):
-    if prob >= 1:
-        prob /= 100
-    difficulty = die * sides
-    currentProbability = 0
-    while (currentProbability < prob) & (difficulty > 1):
-        probToRollDiff = (1 / (sides ** die)) * specialSum(die, sides, difficulty)
-        currentProbability += probToRollDiff
-        difficulty -= 1
-    return difficulty
+    if rollResult not in possibleResults:
+        possibleResults[rollResult] = 1
+    else:
+        possibleResults[rollResult] += 1
+
+def getResults(rolledDice, dieNumber, sides, possibleResults):
+    if dieNumber > 0:
+        for result in range(1, sides + 1):
+            getResults(rolledDice + [result], dieNumber - 1, sides, possibleResults)
+    else:
+        checkSuccess(rolledDice, possibleResults)
+
+def computeDifficulty(die, sides):
+    possibleResults = {}
+    rolledDice = []
+    getResults(rolledDice, die, sides, possibleResults)
+
+    totalRolls = sides ** die
+
+    sortedResults = dict(sorted(possibleResults.items(), key=lambda kv : -kv[1]))
+
+    for result in sortedResults:
+        sortedResults[result] = str((sortedResults[result] / totalRolls) * 100) + "%"
+
+
+    return sortedResults
 
 if __name__ == "__main__":
 
-    if (len(sys.argv)) == 1:
-        for die in ["1d2", "2d4", "3d6", "4d8", "5d12", "6d24", "7d30", "8d60", "9d100"]:
-            for P in ["1", "15", "55", "60", "70", "80", "85", "90", "95", "97", "99"]:
-                (d, side) = die.split("d")
-                if (int(d) > 5) and (P == "55"):
-                    print(die, "30", computeDifficulty(int(d), int(side), 30))
-                else:
-                    print(die, P, computeDifficulty(int(d), int(side), int(P)))
-        exit()
-
-    if (len(sys.argv)) != 3:
+    if (len(sys.argv)) != 2:
         help()
         exit()
-    (die, sides, probability) = computeArguments(sys.argv)
-    print(computeDifficulty(die, sides, probability))
+    (die, sides) = computeArguments(sys.argv)
+    if die < 1:
+        print("Wrong number of dice selected")
+        exit()
+
+    print(computeDifficulty(die, sides))
 
